@@ -48,13 +48,14 @@ Summary Workflow:
 ### Data Acquisition:
 
 1) Images of the following apiary diseases will be obtained:
+    
     a. Small Hive Beetles
     b. American Foulbrood
-    3. European Foulbrood
-    4. Wax Moth
-    5. Chalkbrood
-    6. Nosema
-    7. Varroa Mite
+    c. European Foulbrood
+    d. Wax Moth
+    e. Chalkbrood
+    f. Nosema
+    g. Varroa Mite
 
 2) Images will be split into training and test directories
 
