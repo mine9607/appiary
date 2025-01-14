@@ -132,11 +132,15 @@ Summary Workflow:
 
 Using Tensorflow Hub (now Kaggle)
 
- * EfficientNet URL: `https://www.kaggle.com/models/google/efficientnet-v2/frameworks/TensorFlow2/variations/imagenet1k-b0-feature-vector/versions/2`
- * ResNet50 URL: `https://www.kaggle.com/models/google/resnet-v2/frameworks/TensorFlow2/variations/50-feature-vector/versions/2`
+EfficientNet URL:
+ * `https://www.kaggle.com/models/google/efficientnet-v2/frameworks/TensorFlow2/variations/imagenet1k-b0-feature-vector/versions/2`
 
- Incorporating Feature Extraction:
-    ```python
+ResNet50 URL: 
+ * `https://www.kaggle.com/models/google/resnet-v2/frameworks/TensorFlow2/variations/50-feature-vector/versions/2`
+
+**Incorporating Feature Extraction:**
+
+```python
     import tensorflow as tf
     import tensorflow_hub as hub
     from tensorflow.keras import layers
@@ -189,5 +193,5 @@ resnet_history = resnet_model.fit(train_data,
                                                                          experiment_name='resnet50v2')]
                                   )
 
-    ```
- * 
+```
+ 
