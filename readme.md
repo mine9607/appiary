@@ -88,12 +88,12 @@ Summary Workflow:
 
 ### Model Inference:
     
-    1) A simple UI allowing users to upload a photo or multiple photos of hive
-    2) Photo will be sent to server for processing (ensure correct file type)
-    3) Photo will be pre-processed for Model Inference
-    4) Model will be passed the processed photo and make a prediction.
-    5) Prediction results will be sent to LLM call for guidance
-    6) LLM call will be sent back to client UI instructing on remedies, next steps and if local authorities need to be called
+1) A simple UI allowing users to upload a photo or multiple photos of hive
+2) Photo will be sent to server for processing (ensure correct file type)
+3) Photo will be pre-processed for Model Inference
+4) Model will be passed the processed photo and make a prediction.
+5) Prediction results will be sent to LLM call for guidance
+6) LLM call will be sent back to client UI instructing on remedies, next steps and if local authorities need to be called
 
 ### Suggestions for Improvement:
 
