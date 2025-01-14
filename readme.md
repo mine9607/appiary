@@ -44,12 +44,12 @@ Summary Workflow:
 4. Train the custom layers first while the base layers are frozen.
 5. Optionally unfreeze some of the deeper layers and continue training with a lower learning rate.
 
-
+---
 ### Data Acquisition:
 
 1) Images of the following apiary diseases will be obtained:
-    1. Small Hive Beetles
-    2. American Foulbrood
+    a. Small Hive Beetles
+    b. American Foulbrood
     3. European Foulbrood
     4. Wax Moth
     5. Chalkbrood
@@ -58,7 +58,7 @@ Summary Workflow:
 
 2) Images will be split into training and test directories
 
-
+---
 ### Model Training:
 1) Data Pre-processing:
     A) Images will be re-sized to (224 x 224) - this must align with the Feature-Extraction layer input requirements
@@ -66,11 +66,11 @@ Summary Workflow:
 
 2) Model Definition:
     A) Data Augmentation Layer:
-        1. Rescaling(1./255, input_shape = (224, 224, 3))
-        2. RandomFlip(mode='horizontal_and_vertical')
-        3. RandomRotation(0.2)
-        4. RandomZoom(0.2)
-        5. RandomTranslation(0.2, 0.2)
+        a. Rescaling(1./255, input_shape = (224, 224, 3))
+        b. RandomFlip(mode='horizontal_and_vertical')
+        c. RandomRotation(0.2)
+        d. RandomZoom(0.2)
+        e. RandomTranslation(0.2, 0.2)
     B) Feature-extraction (Transfer Learning) Layer (ResNet50, EfficientNet, MobileNet, etc)
         - Freeze the early layers of ResNet model and use to extract features from dataset
         - Add custom layers on top to specialize in disease detection
@@ -141,11 +141,9 @@ ResNet50 URL:
 **Incorporating Feature Extraction:**
 
 ```python
-    import tensorflow as tf
-    import tensorflow_hub as hub
-    from tensorflow.keras import layers
-
-    import tensorflow_hub as hub
+import tensorflow as tf
+import tensorflow_hub as hub
+from tensorflow.keras import layers
 
 def create_model(model_url, num_classes=10, image_size=(224, 224)):
   '''
