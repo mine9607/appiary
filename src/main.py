@@ -2,8 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from model_utils import load_model
-from pathlib import Path
-import os
+from config import STATIC_DIR_PATH, TEMPLATE_DIR_PATH, PORT
 
 # Import routers
 from routers import uploads, processImage, inference, diagnosis
@@ -11,11 +10,7 @@ from routers import uploads, processImage, inference, diagnosis
 app = FastAPI()
 
 # Mount the static directory for serving JS and other assets
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# Define the root route to serve the HTML form
-templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+app.mount("/static", StaticFiles(directory=STATIC_DIR_PATH), name="static")
 
 # Initialize a global variable for the ML Model:
 model = None
@@ -27,11 +22,10 @@ def load_model_event():
     model = load_model()
 
 
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    # Serve the HTML file
-    with open(os.path.join(templates_dir, "index.html")) as f:
+    # Serve the HTML file from the template directory
+    with open(TEMPLATE_DIR_PATH / "index.html") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content)
 
@@ -44,4 +38,4 @@ app.include_router(diagnosis.router, prefix="", tags=["Diagnosis"])
 
 if __name__=="__main__":
             import uvicorn
-            uvicorn.run("main:app", port=8000, log_level="info")
+            uvicorn.run("main:app", port=PORT, log_level="info")
