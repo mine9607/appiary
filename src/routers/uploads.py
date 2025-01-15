@@ -1,4 +1,5 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from routers import process_image
 import os
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -31,5 +32,10 @@ async def upload_file(file:UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
 
-    return {"filename": file.filename, "filepath":file_path}
+    # read the file contents as bytes
+    image_bytes = await file.read()
+
+    result = await process_image(image_bytes)
+
+    return {"filename": file.filename, "filepath":file_path, "results":result}
 
