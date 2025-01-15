@@ -8,7 +8,6 @@ import io
 
 router = APIRouter()
 
-from main import model
 
 # Define class_names
 class_names = ['class1', 'class2', 'class3']

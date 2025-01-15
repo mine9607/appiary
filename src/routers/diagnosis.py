@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File
-import os
+
+router = APIRouter()
 
 @router.post("/diagnosis")
 async def diagnose_image(file:UploadFile = File(...)):

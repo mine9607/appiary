@@ -1,6 +1,6 @@
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).parent.parent
 STATIC_DIR_PATH = PROJECT_ROOT / "src" / "static"
 TEMPLATE_DIR_PATH = PROJECT_ROOT / "src" / "templates"
 

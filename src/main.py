@@ -1,7 +1,7 @@
 from fastapi import FastAPI 
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from model_utils import load_model
+from model_utils.model_loader import load_model 
 from config import STATIC_DIR_PATH, TEMPLATE_DIR_PATH, PORT
 
 # Import routers
@@ -13,12 +13,13 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory=STATIC_DIR_PATH), name="static")
 
 # Initialize a global variable for the ML Model:
-model = None
+model = load_model()
 
 # Load the saved model from disk on app startup:
 @app.on_event("startup")
 def load_model_event():
     global model
+    from model_utils.model_loader import load_model
     model = load_model()
 
 
