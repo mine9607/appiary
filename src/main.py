@@ -1,10 +1,12 @@
 from fastapi import FastAPI 
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+import tensorflow as tf
 import os
 
 # Import routers
-from routers import uploads, processImage, inference
+from routers import uploads, processImage, inference, diagnosis
 
 app = FastAPI()
 
@@ -14,6 +16,20 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Define the root route to serve the HTML form
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+
+# Initialize a global variable for the ML Model:
+model = None
+
+# Load the saved model from disk on app startup:
+@app.on_event("startup")
+def load_model():
+    global model
+    model_path = Path(__file__).parent / "models" / "my_model"
+    if model_path.is_dir():
+        model = tf.keras.models.load_model(model_path, custom_objects={'KerasLayer': hub.KerasLayer})
+        print("Model loaded successfully.")
+    else:
+        print(f"Model directory {model_path} does not exist.")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -25,7 +41,8 @@ async def read_root():
 # Include routers for modular functionality
 app.include_router(uploads.router, prefix="", tags=["Uploads"])
 #app.include_router(processImage.router)
-#app.include_router(inference.router)
+app.include_router(inference.router, prefix="", tags=["Predictions"])
+app.include_router(diagnosis.router, prefix="", tags=["Diagnosis"])
 
 '''
 @app.post("/upload-multiple")
