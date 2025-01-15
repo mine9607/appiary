@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Appiary</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+  <header id='header'>
+    <img src="/static/images/AppiaryLogo.png" width=48 height=48 alt="logo">
+    <p class='header-text'>This is the header...place an app logo.</p>
+  </header>
+  <div class="form-container">
+    <form id="uploadForm">
+      <p>Upload a photo of your bee frame.</p>
+      <input type="file" name="image" accept=".jpg, .png" id="fileInput" multiple/>
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+  <div id="response-container">Output a result here</div>
+  <script src="/static/js/upload.js"></script>
+</body>
+</html>
