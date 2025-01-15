@@ -1,8 +1,8 @@
 from fastapi import FastAPI 
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from model_utils import load_model
 from pathlib import Path
-import tensorflow as tf
 import os
 
 # Import routers
@@ -22,14 +22,11 @@ model = None
 
 # Load the saved model from disk on app startup:
 @app.on_event("startup")
-def load_model():
+def load_model_event():
     global model
-    model_path = Path(__file__).parent / "models" / "my_model"
-    if model_path.is_dir():
-        model = tf.keras.models.load_model(model_path, custom_objects={'KerasLayer': hub.KerasLayer})
-        print("Model loaded successfully.")
-    else:
-        print(f"Model directory {model_path} does not exist.")
+    model = load_model()
+
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -40,30 +37,11 @@ async def read_root():
 
 # Include routers for modular functionality
 app.include_router(uploads.router, prefix="", tags=["Uploads"])
-#app.include_router(processImage.router)
+app.include_router(processImage.router, prefix="", tags=["ProcessImages"])
 app.include_router(inference.router, prefix="", tags=["Predictions"])
 app.include_router(diagnosis.router, prefix="", tags=["Diagnosis"])
 
-'''
-@app.post("/upload-multiple")
-async def upload_multiple_files(files: List[UploadFile] = File(...)):
-    """
-    Handles multiple file uploads.
-    - `files`: A list of uploaded files.
-    """
-    saved_files = []
-    for file in files:
-        file_path = os.path.join(UPLOAD_DIR, file.filename)
-
-        # Save each file
-        with open(file_path, "wb") as buffer:
-            buffer.write(await file.read())
-
-        saved_files.append({"filename": file.filename, "filepath":file_path})
-    
-    return {"files": saved_files}
-'''
 
 if __name__=="__main__":
             import uvicorn
-            uvicorn.run(app, host="127.0.0.1", port=8000)
+            uvicorn.run("main:app", port=8000, log_level="info")
