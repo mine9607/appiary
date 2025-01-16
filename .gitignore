@@ -7,8 +7,21 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Image Data storage
-/data/
+# Image Data storage for ml training
+data/
+
+# Model files
+models/
+
+# Training Logs
+logs/
+
+# Output Model Plots
+src/plots/
+
+# Uploaded User Photos
+src/uploads/
+
 
 # C extensions
 *.so
