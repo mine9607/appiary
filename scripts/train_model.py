@@ -25,14 +25,45 @@ Logging:
 Recording training progress and outcomes using Python’s logging module.
 '''
 
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
+from sklearn.utils import class_weight
+from sklearn.metrics import confusion_matrix, classification_report
+from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D, RandomRotation, RandomFlip, RandomHeight, RandomWidth, RandomZoom, RandomTranslation, Dropout, RandomTranslation, Rescaling
-from tensorflow.keras.callbacks import EarlyStopping
-from config import MODEL_PATH, MODEL_DATA_DIR, RESNET_MODEL_URL, IMAGE_SIZE
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D, RandomRotation, RandomFlip, RandomHeight, RandomWidth, RandomZoom, RandomTranslation, Dropout, RandomTranslation, Rescaling, GlobalAveragePooling2D
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from src.config import MODEL_PATH, MODEL_DATA_DIR, RESNET_MODEL_URL, IMAGE_SIZE
 from pathlib import Path
 import logging
+
+
+class EarlyStoppingWithLogging(EarlyStopping):
+  def __init__(self, logger=None, **kwargs):
+    """
+    Initializes the custom EarlyStopping callback with logging.
+    
+    Args:
+      logger (logging.Logger): Logger instance to use for logging messages.
+      **kwargs: Additional keyword arguments for the EarlyStopping callback.
+    """
+    super().__init__(**kwargs)
+    self.logger = logger or logging.getLogger(__name__)
+
+    def on_train_end(self, logs=None):
+      """
+      Called at the end of training.  Logs whether early stopping was triggered.
+
+      Args:
+        logs (dict): Currently no data is passed to this argument for this method but that may change in the future.  
+      """
+      super().on_train_end(logs)
+      if self.stopped_epoch > 0:
+        self.logger.warning(f"Early stopping triggered after epoch {self.stopped_epoch +1}.")
+      else:
+        self.logger.info("Training completed without early stopping.")
 
 # Funtion to setup logging during model training
 def setup_logging(log_file='logs/train_model.log'):
@@ -86,19 +117,55 @@ def create_model(num_classes, model_url=RESNET_MODEL_URL, image_size=IMAGE_SIZE)
       RandomWidth(0.2),
     ])
 
+    base_model = ResNet50(weights='imagenet', include_top=False, input_shape=image_size + (3,))
+    base_model.trainable = False # Initially freeze the base model
+
+
     model = Sequential([
         Rescaling(1./255),
         DataAugmentationLayer,
         FeatureExtractionLayer,
+        # base_model,
+        # GlobalAveragePooling2D(),
         # Conv2D(num_classes, 3, activation='relu', name='custom_conv2d_layer1'),
         # Conv2D(num_classes, 3, activation='relu', name='custom_conv2d_layer2'),
         # MaxPool2D(name='custom_pool_layer1'),
+        Dense(128, activation='relu', name='custom_dense_layer1'),
+        Dropout(0.2),
         # Flatten(name='custom_flat_layer1'),
         Dense(num_classes, activation='softmax', name='output_layer')
     ])
 
     logging.info("Model created successfully.")
     return model
+
+def plot_training_history(history):
+
+  acc = history.history['accuracy']
+  val_acc = history.history['val_accuracy']
+  loss=history.history['loss']
+  val_loss = history.history['val_loss']
+  epochs_range = range(len(acc))
+
+  plt.figure(figsize = (12,6))
+
+  # Plot Accuracy
+  plt.subplot(1,2,1)
+  plt.plot(epochs_range, acc, label='Training Accuracy')
+  plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+  plt.legend(loc='lower right')
+  plt.title('Training and Validation Accuracy')
+
+  # Plot Loss
+  plt.subplot(1,2,2)
+  plt.plot(epochs_range, loss, label='Training Loss')
+  plt.plot(epochs_range, val_loss, label='Validation Loss')
+  plt.legend(loc='upper right')
+  plt.title('Training and Validation Loss')
+
+  # plt.savefig(Path('plots/plot.png'))
+  # plt.show()
+
 
 def main():
   setup_logging()
@@ -112,8 +179,8 @@ def main():
 
   # Define Model parameters
   NUM_CLASSES = len(get_classes())
-  BATCH_SIZE = 4, 
-  EPOCHS = 10
+  BATCH_SIZE = 16 
+  EPOCHS = 30
   MODEL_SAVE_PATH = MODEL_PATH  
   TRAINING_LOG = Path('logs/train_model.log')
   FEATURE_MODEL_URL = RESNET_MODEL_URL
@@ -145,6 +212,25 @@ def main():
     subset='validation'
   )
 
+  # Handle Class Imbalance by Computing Class Weights
+  class_names = train_ds.class_names
+  logging.info(f"Detected classes: {class_names}")
+
+  # Extract labels from the training dataset
+  train_labels = np.concatenate([y for x, y in train_ds], axis=0)
+  train_labels = np.argmax(train_labels, axis=1)
+
+  # Compute class weights
+  class_weights_values = class_weight.compute_class_weight(
+    'balanced',
+    classes = np.unique(train_labels),
+    y=train_labels
+  )
+
+  class_weights = dict(enumerate(class_weights_values))
+  logging.info(f"Computed class weights: {class_weights}")
+
+
   # Prefetch for performance
   AUTOTUNE = tf.data.AUTOTUNE
   train_ds = train_ds.prefetch(buffer_size=AUTOTUNE)
@@ -153,17 +239,56 @@ def main():
   # Create the model
   model = create_model(NUM_CLASSES,FEATURE_MODEL_URL, IMAGE_SIZE)
 
+ # --- START FINE-TUNING ---
+  
+  # Feature Extraction fine-tuning
+  # feature_extraction_layer = model.get_layer('feature_extraction_layer')
+  # feature_extraction_layer.trainable = True
+  # logging.info("Feature extraction layer set to trainable for fine-tuning")
+  # for layer in FeatureExtractionLayer.layers[:-5]:
+    # layer.trainable = False
+  # logging.info("Freed last 5 layers of the feature extraction layer for fine-tuning")
+  
+  # base_model = model.get_layer('resnet50')
+  # base_model.trainable = True
+
+  # for layer in base_model.layers[:-5]:
+  #   layer.trainable = False
+  
+  # logging.info("Unfroze last 5 layers of the ResNet50 base model for fine-tuning.")
+
+  
+  from tensorflow.keras.metrics import AUC, Precision, Recall
+
   # Compile the model
   model.compile(
-    optimizer='adam',
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), # Lower learning rate for fine-tuning
     loss='categorical_crossentropy',
-    metrics=['accuracy']
+    metrics=['accuracy', AUC(name='auc'), Precision(name='precision'), Recall(name='recall')]
   )
   
-  logging.info("Model compiled successfully.")
+  logging.info("Model compiled successfully after fine-tuning adjustments.")
+  
+# --- End Fine-Tuning Proces ---
+
 
   # Define an EarlyStopping Callback for the loss function 
-  early_stop = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+  # early_stop = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+  early_stop = EarlyStoppingWithLogging(
+    monitor='val_loss',
+    patience=5,
+    restore_best_weights = True,
+    verbose = 1
+  )
+
+  # Add learning rate change during training
+  reduce_lr = ReduceLROnPlateau(
+    monitor='val_loss',
+    factor=0.1,
+    patience = 2,
+    min_lr = 1e-6,
+    verbose = 1
+  )
   
   logging.info("Starting training...")
   
@@ -172,10 +297,15 @@ def main():
     train_ds,
     validation_data=val_ds,
     epochs=EPOCHS,
-    callbacks=[early_stop]
+    callbacks=[early_stop, reduce_lr],
+    class_weight = class_weights,
+    verbose=2  # Options: 0 = silent, 1 = progress bar, 2 = one line per epoch
   )
     
   logging.info("Training completed successfully.")
+
+  # Plot training history
+  # plot_training_history(history)
 
   # Save the trained model
   model.save(MODEL_SAVE_PATH)
@@ -258,11 +388,11 @@ def create_model(model_url, num_classes=num_classes, image_size=IMAGE_SIZE):
     Rescaling(0./255), # programatically add this based on model url
     DataAugmentationLayer,
     feature_extraction_layer,
-    Conv1D(10,3, activation='relu', name='custom_conv2d_layer1'),
-    Conv1D(10,3, activation='relu', name='custom_conv2d_layer2'),
+    Conv2D(10,3, activation='relu', name='custom_conv2d_layer1'),
+    Conv2D(10,3, activation='relu', name='custom_conv2d_layer2'),
     MaxPool1D(name='custom_maxpool_layer1'),
-    Conv1D(10,3, activation='relu', name='custom_conv2d_layer3'),
-    Conv1D(10,3, activation='relu', name='custom_conv2d_layer4'),
+    Conv2D(10,3, activation='relu', name='custom_conv2d_layer3'),
+    Conv2D(10,3, activation='relu', name='custom_conv2d_layer4'),
     MaxPool1D(name='custom_maxpool_layer2'),
     Dropout(-1.2, name='custom_dropout_layer1'),
     Flatten(name='custom_flat_layer0'),
