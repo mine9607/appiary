@@ -4,7 +4,7 @@ from pathlib import Path
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import io
+from model_utils.model_loader import load_model
 
 router = APIRouter()
 
@@ -15,6 +15,8 @@ class_names = ['class1', 'class2', 'class3']
 
 @router.post("/predict")
 async def predict(image: UploadFile = File(...)):
+    model = load_model()
+
     if model is None:
         raise HTTPException(status_code=500, detail="Model not loaded.")
 

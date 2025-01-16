@@ -10,25 +10,17 @@ To recreate the project from the environment.yml file: `conda env create -f envi
 
 Note: if the yml file is updated run: `conda env update -f environment.yml --prune` to update the environment
 
-1.  Install conda (miniconda) if not yet installed: `https://docs.anaconda.com/miniconda/install/`
-
-2.  Create a conda environment:
-    `conda create --name <env_name>` (installs latest version of python)
-    `conda create --name <env_name> python=3.10` (install a specific python version)
-
-3.  List all conda environments: `conda env list`
-
-4.  Activate the conda environment: `conda activate <env_name>`
-
-5.  Install the necessary dependencies: `conda install conda-forge <package_name>`
-
-6.  List all dependencies in an activated conda environment: `conda list` or `conda list -n <env_name>`
-
-7.  List all deps installed via conda-forge: `conda list --explicit`
-
-8.  List all deps installed via pip: `pip list`
-
-9.  To close the conda env: `conda deactivate`
+1. Install conda (miniconda) if not yet installed: `https://docs.anaconda.com/miniconda/install/`
+2. Create a conda environment:
+   `conda create --name <env_name>` (installs latest version of python)
+   `conda create --name <env_name> python=3.10` (install a specific python version)
+3. List all conda environments: `conda env list`
+4. Activate the conda environment: `conda activate <env_name>`
+5. Install the necessary dependencies: `conda install conda-forge <package_name>`
+6. List all dependencies in an activated conda environment: `conda list` or `conda list -n <env_name>`
+7. List all deps installed via conda-forge: `conda list --explicit`
+8. List all deps installed via pip: `pip list`
+9. To close the conda env: `conda deactivate`
 
 ---
 
@@ -63,7 +55,6 @@ The following features will be built into the project:
    - European Foulbrood
    - Wax Moth
    - Chalkbrood
-   - Nosema
    - Varroa Mite
 
 2. Images will be split into training and test directories
@@ -110,10 +101,10 @@ RandomTranslation(0.2, 0.2)
 3. Padding:
 
    - 'same' = pads the target tensor with zeroes
-
    - 'valid' = leaves the target tensor as is (lowering output shape).
 
 4. Strides: - The number of steps a filter takes across an image at a time
+
    - Example (strides = 1 : a filter moves across an image 1 pixel at a time)
 
 > _MaxPool, GlobalPool, Avg Pool_
@@ -126,7 +117,7 @@ RandomTranslation(0.2, 0.2)
 
 > _Dense Output Layer (10, activation='softmax', name='outputs')_
 
-3.  **Model Compilation:**
+3. **Model Compilation:**
 
 ```python
 Optimizer = "adam"
