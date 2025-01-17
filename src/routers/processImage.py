@@ -1,6 +1,6 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, Request
 import tensorflow as tf
-import os
+from routers.inference import predict
 
 IMAGE_SIZE=(224,224)
 
@@ -20,11 +20,12 @@ def load_and_prep_image(image_bytes, img_shape=IMAGE_SIZE):
   print("Initial shape: ", img.shape)
   # Resize the image
   img = tf.image.resize(img, size=img_shape)
+  img = tf.expand_dims(img, axis=0)
   print("Final shape: ", img.shape)
   # Rescale the image
   img = img/255.
 
-  print(f"The processed image: {img}")
+  print(f"The processed image: {img} - {img.dtype}")
 
   return img
 
@@ -33,9 +34,15 @@ def load_and_prep_image(image_bytes, img_shape=IMAGE_SIZE):
 
 
 @router.post("/process-image")
-async def process_image(img_bytes):
+async def process_image(img_bytes, request: Request):
   """
   Receive an image and preps it for use in model prediction
   """
   processed_image = load_and_prep_image(img_bytes)
-  return processed_image
+
+  # call the inference model
+  result = await predict(processed_image, request)
+  # print(f"RECEIVED RESULT FROM INFERENCE: {result['message']}")
+
+  
+  return result

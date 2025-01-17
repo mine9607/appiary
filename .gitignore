@@ -21,7 +21,9 @@ src/plots/
 
 # Uploaded User Photos
 src/uploads/
+/uploads
 
+.env
 
 # C extensions
 *.so

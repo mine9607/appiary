@@ -1,4 +1,4 @@
-from fastapi import FastAPI 
+from fastapi import FastAPI, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from model_utils.model_loader import load_model 
@@ -12,16 +12,10 @@ app = FastAPI()
 # Mount the static directory for serving JS and other assets
 app.mount("/static", StaticFiles(directory=STATIC_DIR_PATH), name="static")
 
-# Initialize a global variable for the ML Model:
-model = load_model()
-
 # Load the saved model from disk on app startup:
 @app.on_event("startup")
 def load_model_event():
-    global model
-    from model_utils.model_loader import load_model
-    model = load_model()
-
+    app.state.model = load_model()
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
