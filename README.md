@@ -1,4 +1,5 @@
-# Appiary General Notes:
+# App-iary: Honeycomb Disease Detection using Machine Learning
+Appiary General Notes:
 
 ## Environment Setup
 
