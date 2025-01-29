@@ -1,4 +1,13 @@
 # App-iary: Honeycomb Disease Detection using Machine Learning
+
+Note: need to ensure the following sections are included:
+ - Title
+ - Description
+ - "Why?" (Motivation/Goal/Problem to solve)
+ - Quick Start
+ - Usage
+ - Contributing
+
 Appiary General Notes:
 
 ## Environment Setup
